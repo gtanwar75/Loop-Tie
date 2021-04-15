@@ -1,0 +1,4 @@
+<!--c:compEvent-->
+<aura:event type="COMPONENT">
+    <aura:attribute name="optOut" type="Boolean"/>
+</aura:event>

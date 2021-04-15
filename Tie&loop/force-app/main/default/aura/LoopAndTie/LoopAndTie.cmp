@@ -1,0 +1,19 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+
+    <aura:attribute name="componentLogo" type="String" default="{!$Resource.loopAndTieLogo}"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <!--<aura:handler name="render" value="{!this}" action="{!c.render}"/>-->
+
+    <div class="slds-container slds-container_fluid slds-card" style="background-color:white;">
+        <div class="slds-grid slds-grid_pull-padded-medium slds-grid_vertical-align-center slds-grid_align-spread slds-p-around_large">
+            <div class="slds-col slds-grow-none slds-p-horizontal_medium slds-size_6-of-12">
+                <img class="lt-component-image_background slds-is-absolute slds-p-around_medium customCSS"  src="{!$Resource.loopAndTieAmpersand}" />
+            </div>
+            <div class="slds-col slds-grow-none slds-p-horizontal_medium slds-text-align_center slds-size_6-of-12" style="width:60%">
+                <img class="lt-component-image_logo customCSS1 " src="{!$Resource.loopAndTieLogo}"/>
+                <lightning:button label="Send Gift" variant="brand" onclick="{!c.handleSendGiftClick}" class="slds-button slds-button_neutral slds-m-around_medium buttonCss"/>
+            </div>
+        </div>
+    </div>
+</aura:component>

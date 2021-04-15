@@ -1,0 +1,48 @@
+<aura:component >
+    <!-- Labels -->
+    <aura:attribute name="title" type="String" default="Help Title" access="private"/>
+    <aura:attribute name="subtitle" type="String" default="Help Subtitle" access="private"/>
+    <aura:attribute name="description" type="String" default="Help Description Goes Here" access="private"/>
+    <!-- /Labels -->
+
+    <!-- Help -->
+    <div class="strike-help slds-box slds-m-top_large slds-theme_default">
+        <!-- Header -->
+        <div class="strike-help__header">
+            <h3 class="slds-text-heading_medium">Loop &amp; Tie Support and Next Steps</h3>
+        </div>
+        <!-- /Header -->
+
+        <!-- Body -->
+        <div class="strike-help__body slds-text-body_small">
+            <h4 class="slds-text-heading_small">Thanks for installing Loop &amp; Tie, here's some information that will help you gift like a pro.</h4>
+            
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_1-of-2">
+                    <p class="slds-m-top_medium">
+                        To send your first gift, you need to have a form of payment linked to your Loop&nbsp;&amp;&nbsp;Tie account. You can login to <a href="https://www.loopandtie.com/">loopandtie.com</a> and add a credit card, or if you’d rather talk to a human we’re at <a href="mailto:hello@loopandtie.com">hello@loopandtie.com</a> or 844-394-9600. Either way we’ll get back to you quickly!
+                    </p>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <p class="slds-m-top_medium">
+                        Other things you can ask us about: 
+                    </p>
+                    <p>
+                        1/ Creating a custom collection - Create collections featuring your own branded products, gift cards or experiences.
+                    </p>
+                    <p>
+                        2/ Creating custom designs - Create designs with high-res images, videos or .gifs.
+                    </p>
+                    <p>
+                        3/ Discounts for bulk orders - If you’re a big spender, we offer benefits
+                    </p>
+                </div>
+            </div>
+            <p class="slds-m-top_medium">
+                Happy Gifting!
+            </p>
+        </div>
+        <!-- /Body -->
+    </div>
+    <!-- /Help -->
+</aura:component>

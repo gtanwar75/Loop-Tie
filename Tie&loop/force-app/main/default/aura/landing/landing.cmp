@@ -1,0 +1,81 @@
+<aura:component >
+    <!-- Required -->
+    <aura:attribute name="data" type="Object"/>
+    <!-- /Required -->
+
+    <!-- Internal -->
+    <aura:attribute name="completedSections" type="Integer" default="0" access="private"/>
+    <aura:attribute name="hidden" type="Boolean" default="true" access="private"/>
+    <!-- /Internal -->
+
+    <!-- Methods -->
+    <aura:method name="hide" action="{!c.hide}"/>
+    <aura:method name="show" action="{!c.show}"/>
+    <!-- /Methods -->
+
+    <!-- Events -->
+    <aura:registerEvent name="onNavigateClick" type="c:strikeSetupEvent"/>
+    <!-- /Events -->
+
+    <!-- Labels -->
+    <aura:attribute name="completeMessage" type="String" default="You're all set! You can edit the sections below to update your configuration." access="private"/>
+    <aura:attribute name="incompleteMessage" type="String" default="Complete the sections below to set up Loop &amp; Tie." access="private"/>
+    <aura:attribute name="startBtn" type="String" default="Get Started" access="private"/>
+    <aura:attribute name="continueBtn" type="String" default="Continue Setup" access="private"/>
+    <aura:attribute name="progress" type="String" default="{0} out of {1} sections completed" access="private"/>
+
+    <!-- /Labels -->
+
+    <div class="slds-scope">
+        <div class="{!'slds-container_large slds-container_center slds-m-top_large slds-p-horizontal_medium' + if(v.hidden, ' slds-hide', '')}">
+            <!-- Main -->
+            <div class="slds-box slds-theme_default">
+                <!-- Hero -->
+                <div class="slds-p-vertical_xx-large slds-text-align_center">
+                    <!-- Logo -->
+                    <div class="strike-logo-container slds-m-bottom_x-large">
+                        <img src="{!$Resource.loopAndTieLogo}"/>
+                    </div>
+                    <!-- /Logo -->
+                    <!-- Description -->
+                    <div class="slds-text-heading_medium slds-p-top_medium">
+                        {!if(null == v.completedSections, v.incompleteMessage, '')}
+                        {!if(v.completedSections >= v.data.length, v.completeMessage, '')}
+                    </div>
+                    <!-- /Description -->
+                    <!-- Start Button -->
+                    <div class="{!'slds-m-top_x-large' + if(v.completedSections >= v.data.length, ' slds-hide', '')}">
+                        <lightning:button class="slds-button slds-button_brand strike-button strike-button_large" label="{!if(null == v.completedSections, v.startBtn, v.continueBtn)}" onclick="{!c.clickStart}"/>
+                    </div>
+                    <!-- /Start Button -->
+                    <!-- Progress -->
+                    <aura:if isTrue="{!v.completedSections >= 0}">
+                        <div class="slds-text-body_small slds-p-top_medium slds-text-color_weak">{!format(v.progress, v.completedSections, v.data.length)}</div>
+                    </aura:if>
+                    <!-- /Progress -->
+                </div>
+                <!-- /Hero -->
+                <div class="strike-task-list">
+                    <aura:iteration items="{!v.data}" var="section">
+                        <div class="strike-task-item">
+                            <div class="{!'strike-task-status-icon' + if('completed' == section.status, ' strike-icon-text-success', ' strike-icon-text-disabled')}">
+                                <lightning:icon aura:id="rowIcon" iconName="utility:like" size="large" title="{!section.name}"/>
+                            </div>
+                            <div class="strike-task-info slds-p-horizontal_medium">
+                                <h3 class="slds-text-heading_small">{!section.name}</h3>
+                                <div class="slds-text-color_weak slds-text-body_small">{!section.description}</div>
+                            </div>
+                            <div class="{!if('' == section.status, ' slds-hide', '')}">
+                                <div class="strike-task-action">
+                                    <lightning:button aura:id="sectionButton" value="{!section.name}" class="slds-button slds-button_neutral" label="{!if('completed' == section.status, 'Edit', 'Continue')}" onclick="{!c.clickSection}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </aura:iteration>
+                </div>
+            </div>
+            <!-- /Main -->
+            <c:help />
+        </div>
+    </div>
+</aura:component>

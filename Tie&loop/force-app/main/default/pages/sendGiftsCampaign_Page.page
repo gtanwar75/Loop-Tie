@@ -1,0 +1,53 @@
+<apex:page standardController="Campaign" recordSetVar="campaign" extensions="sendGiftsExtension" sidebar="false">
+    <apex:slds /> 
+    <style type="text/css">
+        #sendGift {
+            min-height: 100vh;
+            background-color: #f7f9fb;
+            padding-bottom: 0;
+            margin-bottom: 0;
+            position: relative;
+        }
+        .noSidebarCell #sendGift {
+            min-height: calc(100vh - 120px);
+        }
+        .bodyDiv .outerNoSidebar,
+        .noSidebarCell,
+        .sidebarCell .fixed {
+            padding: 0;
+        }
+    </style>
+    <apex:includeLightning />
+
+    <div id="sendGift"/>
+
+    <script type="text/javascript">
+        var recordId = '{!JSEncode($CurrentPage.parameters.id)}';
+        $Lightning.use("{!JSEncode(namespace)}:lightningOutApp", function(){
+            $Lightning.createComponent('{!JSEncode(namespace)}:sendGift',
+            {
+                recordId: recordId,
+                selectedRecipientIds: '{!JSENCODE(selectedIds)}',
+                isListView: true,
+                filterId: '{!filterId}'
+            }, 
+            "sendGift",
+            function(cmp){
+                $A.eventService.addHandler({'event': 'force:navigateToSObject', 'handler' : navigate});
+                $A.eventService.addHandler({'event': 'force:navigateToList', 'handler' : navigateToList});
+            });
+        });
+
+        var navigate = function(event) {
+            var recordId = event.getParam('recordId');
+            var url = window.location.origin + '/' + recordId;
+            window.open(url, '_top');
+        };
+
+        var navigateToList = function(event) {
+            var recordId = event.getParam('listViewId');
+            var url = window.location.origin + '/003?fcf=' + recordId;
+            window.open(url, '_top'); 
+        };
+    </script>
+</apex:page>

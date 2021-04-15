@@ -1,0 +1,6 @@
+<aura:component >
+    <aura:attribute name="name" type="String" default=""/>
+    <aura:attribute name="description" type="String" default=""/>
+
+    {!v.body}
+</aura:component>

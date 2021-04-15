@@ -1,0 +1,42 @@
+<apex:page standardController="Gift__c" sidebar="false" extensions="cancelGift">
+<apex:slds />
+    <style type="text/css">
+        #cancelGift {
+            padding-bottom: 0;
+            margin-bottom: 0;
+            position: relative;
+        }
+        
+        .bodyDiv .outerNoSidebar,
+        .noSidebarCell,
+        .sidebarCell .fixed {
+            padding: 0;
+        }
+    </style>
+    <apex:includeLightning />
+
+    <div id="cancelGift"/>
+
+    <script type="text/javascript">
+        var recordId = '{!JSEncode($CurrentPage.parameters.id)}';
+        var namespace = '{!JSEncode(namespace)}'
+        $Lightning.use(namespace + ":lightningOutApp", function(){
+            $Lightning.createComponent(namespace + ':cancelGift',
+            {
+                recordId: recordId,
+                visualforce: true
+            }, 
+            "cancelGift",
+            function(cmp){
+                $A.eventService.addHandler({'event': 'force:navigateToSObject', 'handler' : navigate});
+            });
+        });
+
+        var navigate = function(event) {
+            var recordId = event.getParam('recordId');
+            var url = window.location.origin + '/' + recordId;
+            window.open(url, '_top');
+            // window.parent.location = '/' + event.getParam('recordId');
+        };
+    </script>
+</apex:page>

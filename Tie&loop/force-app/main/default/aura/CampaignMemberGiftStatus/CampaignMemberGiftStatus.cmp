@@ -1,0 +1,118 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="sendGiftCampaignController" >
+    
+    <!--Attributes-->
+    <aura:attribute name="gStatus" type="String[]" />
+    <aura:attribute name="memberType" type="String[]" />
+    <aura:attribute name="giftList" type="list" />
+    <aura:attribute name="giftListWithoutFilter" type="list" />
+    <aura:attribute name="searchText" type="String" default="" />
+    <aura:attribute name="data" type="string"/>
+    <aura:attribute name="spinner" type="boolean" default="true"/>
+    
+    <!--Handler-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+    <div>
+        <div class="slds-col slds-size_1-of-1">
+            <lightning:card title="Campaign Member Gift Status" iconName="action:new_note" class="slds-theme_shade">
+                <!--loading spinner start-->
+                <aura:if isTrue="{!v.displaySpinner}">
+                    <div aura:id="spinnerId" class="slds-spinner_container">
+                        <div class="slds-spinner--brand  slds-spinner slds-spinner--small slds-is-relative" role="alert">
+                            <span class="slds-assistive-text">Loading...</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </aura:if>
+                <!-- Loading spinner end--> 
+                
+                <aura:set attribute="actions">
+                    <lightning:button variant="brand" type="button" name="Export File" label="Export File" onclick="{!c.downloadCsv}" />
+                </aura:set>
+                <div class="slds-box slds-box_small">
+                    <div class="slds-grid slds-gutters">
+                        <!--Filter-->
+                        <div class="slds-col slds-size_1-of-3">
+                            <lightning:input type="text" label="Recipient" placeholder="Search" value="{!v.searchText}" onchange="{!c.getFilterRecords}" />
+                        </div>
+                        <!--Select Gift Status-->
+                        <div class="slds-col slds-size_1-of-3">
+                            <lightning:select name="select" label="Gift Status" aura:id="status" onchange="{!c.handleOptionSelected}" >
+                                <option value="none"> None</option>
+                                <option value="sent"> Sent</option>
+                                <option value="opened"> Opened</option>
+                                <option value="redeemed"> Redeemed</option>
+                                <option value="bounced"> Bounced</option>
+                                <option value="shipped"> Shipped</option>
+                                <option value="canceled"> Canceled</option>
+                                <option value="declined"> Declined</option>
+                                <option value="delivered"> Delivered</option>
+                                <option value="scheduled"> Scheduled</option>
+                            </lightning:select>
+                        </div>
+                        <!--Select Member-->
+                        <div class="slds-col slds-size_1-of-3">
+                            <lightning:select name="select" label="Member" aura:id="member" onchange="{!c.handleMemberSelected}" >
+                                <option value="Both"> Both</option>
+                                <option value="Contact"> Contact</option>
+                                <option value="Lead"> Lead</option>
+                            </lightning:select>
+                        </div>
+                    </div>
+                    <!--</div>-->
+                    <br/>
+                    <div class="slds-scrollable slds-medium-show">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered" >
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Name">Recipient</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Email">Email</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="MemberType">Member Type</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Status">Gift Status</div>
+                                    </th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody  >
+                                <aura:iteration items = "{!v.giftList}" var = "gift"  > 
+                                    <tr class="slds-hint-parent">
+                                        <td data-label="Name" scope="row">
+                                            <div class="slds-truncate" title="Name">
+                                                <a href="{!'/'+gift.id}" tabindex="-1">{!gift.name}</a>
+                                            </div>
+                                        </td>
+                                        
+                                        <td data-label="Email">
+                                            <div class="slds-truncate" title="Email">{!gift.email}</div>
+                                        </td>
+                                        <td data-label="memberType">
+                                            <div class="slds-truncate" title="memberType">{!gift.memberType}</div>
+                                        </td>
+                                        <td data-label="Status">
+                                            <div class="slds-truncate" title="Status">{!gift.giftStatus}</div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </lightning:card>
+        </div>
+        <div class="slds-col slds-size_1-of-1">
+            <aura:if isTrue="{!v.data}">
+            	<c:DynamicChart data="{!v.data}"/>
+            </aura:if>
+        </div>    
+    </div>                                                                      
+</aura:component>

@@ -1,0 +1,44 @@
+<aura:component >
+    <!-- Required -->
+    <aura:attribute name="title" type="String" required="true"/>
+    <aura:attribute name="modalHeaderId" type="String" access="private" />
+    <!-- /Required -->
+
+    <!-- Options -->
+    <aura:attribute name="showHeader" type="Boolean" default="{!true}"/>
+    <aura:attribute name="showFooter" type="Boolean" default="{!true}"/>
+    <aura:attribute name="showClose" type="Boolean" default="{!true}"/>
+    <aura:attribute name="showModal" type="Boolean" default="{!false}"/>
+    <aura:attribute name="footerButtons" type="Aura.Component[]"/>
+    <aura:attribute name="size" type="String"/>
+    <aura:attribute name="variant" type="String"/>
+    <!-- /Options -->
+
+    <!-- Methods -->
+    <aura:method name="show" action="{!c.show}"/>
+    <aura:method name="hide" action="{!c.hide}"/>
+
+    <!-- Internal -->
+    <aura:attribute name="fadeIn" type="Boolean" access="private"/>
+    <aura:attribute name="hidden" type="Boolean" default="true" access="private"/>
+    <!-- /Internal -->
+
+    <div aria-hidden="{!v.hidden}" class="{!if(v.hidden, 'slds-hide', '')}">
+        <div id="modal" aura:id="modal" role="dialog" tabindex="{!if(hidden, -1, 0)}" class="{!if(v.hidden, '', 'slds-fade-in-open') + ' slds-modal ' + if(empty(v.variant), '', 'slds-modal--prompt') + if(empty(v.size), '', ' slds-modal--' +v.size)}">
+            <div class="slds-modal__container">
+                <div class="{!'slds-modal__header' + if(empty(v.variant), '', ' slds-theme--alert-texture slds-theme--' + v.variant) + if(v.showHeader == false, ' slds-modal__header--empty', '')}">
+                    <lightning:buttonIcon onclick="{!c.hide}" iconName="utility:close" alternativeText="Close" name="Close" size="large" variant="bare" class="{!'slds-button slds-modal__close slds-button--icon-inverse ' + if(not(v.showClose), 'slds-hide')}"/>
+                    <h2 id="{!'header-' + v.modalHeaderId}" class="{!'slds-text-heading--medium' + if(v.showHeader == false, ' slds-hide', '')}">{!v.title}</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around--medium">
+                    {!v.body}
+                </div>
+                <div class="{!'slds-modal__footer' + if(empty(v.variant), '', ' slds-theme--default')}">
+                    {!v.footerButtons}
+                </div>
+            </div>
+        </div>
+
+        <div id="backdrop" aura:id="backdrop" class="{!'slds-backdrop ' + if(v.hidden, '', 'slds-backdrop--open')}"></div>
+    </div>
+</aura:component>

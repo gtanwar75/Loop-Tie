@@ -1,0 +1,169 @@
+<aura:component controller="setup">
+    <!-- Internal -->
+    <aura:attribute name="sections" type="Object[]" default="[]" access="private"/>
+    <aura:attribute name="steps" type="Object[]" default="[]" access="private"/>
+    <aura:attribute name="activeSection" type="Object" access="private"/>
+    <aura:attribute name="activeStep" type="Object" access="private"/>
+    <aura:attribute name="initOauth" type="Object"/>
+    <aura:attribute name="_data" type="Object" default="" access="private"/>
+    <aura:attribute name="data" type="Object" default="" access="private"/>
+
+    <aura:attribute name="loading" type="Boolean" default="true" access="private"/>
+    <aura:attribute name="toast" type="Object" default="" access="private"/>
+    <!-- /Internal -->
+
+    <!-- Labels -->
+    <aura:attribute name="sectionProgress" type="String" default="Section Progress: {0}%" access="private"/>
+
+    <aura:attribute name="backBtn" type="String" default="Back" access="private"/>
+    <aura:attribute name="cancelBtn" type="String" default="Cancel" access="private"/>
+    <aura:attribute name="exitBtn" type="String" default="Exit" access="private"/>
+    <aura:attribute name="nextBtn" type="String" default="Next" access="private"/>
+    <aura:attribute name="finishBtn" type="String" default="Finish" access="private"/>
+    <aura:attribute name="continueBtn" type="String" default="Continue" access="private"/>
+    <aura:attribute name="modalExitBtn" type="String" default="Exit" access="private"/>
+
+    <aura:attribute name="modalTitle" type="String" default="Are you sure?" access="private"/>
+    <aura:attribute name="modalBody" type="String" default="Unsaved changes will be lost!" access="private"/>
+    <!-- /Labels -->
+
+    <!-- Handlers -->
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="hideToast" event="c:strikeSetupEvent" action="{!c.hideToast}"/>
+    <aura:handler name="showToast" event="c:strikeSetupEvent" action="{!c.showToast}"/>
+    <!-- /Handlers -->
+
+    <div class="slds-scope">
+        <lightning:spinner class="{!if(v.loading, '', 'slds-hide')}" alternativeText="Loading..."/>
+
+        <!-- Setup Content -->
+        <div class="slds-grid slds-grid_vertical">
+            <!-- Landing -->
+            <c:landing aura:id="landing" data="{!v.sections}" onNavigateClick="{!c.clickNavigate}"/>
+            <!-- /Landing -->
+
+            <!-- Error State -->
+            <div class="{!'slds-notify_container strike-setup-toast' + if (not(empty(v.toast)), ' show', '')}">
+                <aura:if isTrue="{!not(empty(v.toast))}">
+                    <div class="{!'slds-notify slds-notify_toast slds-theme_' + v.toast.type}" role="alert">
+                        <span class="slds-assistive-text">{!v.toast.type}</span>
+                        <aura:if isTrue="{!not(empty(v.toast.iconName))}">
+                            <span class="{!'slds-icon_container slds-m-right_small slds-no-flex slds-align-top slds-icon-utility-' + v.toast.type}" title="{!v.toast.type}">
+                                <lightning:icon iconName="{!v.toast.iconName}" size="small" variant="inverse"/>
+                            </span>
+                        </aura:if>
+                        <div class="slds-notify__content">
+                            <h2 class="slds-text-heading_small ">{!if(not(empty(v.toast.title)), v.toast.title, v.toast.message)}</h2>
+                            <aura:if isTrue="{!not(empty(v.toast.title))}">
+                                <p>{!v.toast.message}</p>
+                            </aura:if>
+                        </div>
+                        <button class="slds-button slds-button_icon slds-notify__close slds-button_icon-inverse" title="Close" onclick="{!c.hideToast}">
+                            <lightning:buttonIcon iconName="utility:close" alternativeText="add" size="large" variant="bare-inverse"/>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                    </div>
+                </aura:if>
+            </div>
+            <!-- /Error State -->
+
+            <!-- Section Container -->
+            <div class="{!'slds-scope' + if(empty(v.activeStep.sectionIndex), ' slds-hide', '')}">
+                <!-- Header -->
+                <header class="strike-wizard__header">
+                    <h2 class="{!'strike-wizard__title slds-text-heading_large slds-align_absolute-center ' +
+                               if(v.activeSection.stepsLength > 1, '', ' slds-m-bottom_none')}">
+                        {!v.activeSection.name}
+                    </h2>
+
+                    <!-- Progress Bar -->
+                    <div class="{!if(v.activeSection.stepsLength > 1, '', 'slds-hide')}">
+                        <div class="strike-progress slds-progress slds-progress_shade">
+                            <ol class="strike-progress__list slds-progress__list">
+                                <aura:iteration items="{!v.steps}" var="step">
+                                    <li
+                                        class="{!'slds-progress__item' +
+                                               if(step.stepIndex == v.activeStep.stepIndex,
+                                                ' slds-is-active',
+                                                if(v.activeStep.stepIndex > step.stepIndex, ' slds-is-completed', '')
+                                               ) +
+                                               if(step.sectionIndex == v.activeSection.sectionIndex, '', ' slds-hide')}">
+                                        <button class="{!'slds-button slds-progress__marker' +
+                                                   if(v.activeStep.stepIndex > step.stepIndex, ' slds-progress__marker_icon slds-button_icon', '' )}">
+                                            <lightning:icon class="{!if(v.activeStep.stepIndex > step.stepIndex, '', 'slds-hide')}" iconName="utility:check" size="x-small"/>
+                                            <span class="slds-assistive-text">
+                                                {!step.name}
+                                            </span>
+                                        </button>
+                                    </li>
+                                </aura:iteration>
+                            </ol>
+
+                            <div class="slds-progress-bar slds-progress-bar_x-small" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" role="progressbar">
+                                <span class="slds-progress-bar__value" style="{!'width: ' + v.activeSection.progress * 100 + '%'}">
+                                    <span class="slds-assistive-text">{!format(v.sectionProgress, (v.activeSection.progress * 100))}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /Progress Bar -->
+                </header>
+                <!-- /Header -->
+
+                <!-- Content -->
+                <div aura:id="content" class="strike-wizard__body slds-container_medium slds-container_center slds-p-horizontal_medium">
+                    <!-- SECTIONS AND STEPS -->
+                    <c:section name="System Connections" description="Configure the connection between Loop &amp; Tie and Salesforce">
+                        <c:systemConnections
+                            aura:id="systemConnections"
+                            initOauth="{!v.initOauth}"
+                            postMessageKey="UNIQUE KEY"/>
+
+
+                    </c:section>
+
+                    <!-- Complete -->
+                    <c:sectionEndStep aura:id="complete" sectionTitle="{!v.activeSection.name}"/>
+                    <!-- /Complete -->
+                </div>
+                <!-- /Content -->
+
+                <!-- Navigation Buttons -->
+                <aura:if isTrue="{!not(empty(v.activeStep))}">
+                    <footer class="strike-wizard__footer slds-is-fixed">
+                        <div class="slds-grid slds-grid_pull-padded">
+                            <div class="slds-col slds-no-flex slds-p-horizontal_small">
+                                <aura:if isTrue="{!v.activeStep.isFirstStep}">
+                                    <lightning:button label="{!v.cancelBtn}" onclick="{!c.clickCancel}" disabled="{!v.loading}"/>
+                                    <aura:set attribute="else">
+                                        <lightning:buttonGroup >
+                                            <lightning:button label="{!v.backBtn}" onclick="{!c.clickBack}" class="{!if(v.activeStep.isFirstStep, 'slds-hide', '')}" disabled="{!v.loading}"/>
+                                            <lightning:button label="{!v.exitBtn}" onclick="{!c.clickCancel}" disabled="{!v.loading}"/>
+                                        </lightning:buttonGroup>
+                                    </aura:set>
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-p-horizontal_small">
+                                <lightning:button label="{!v.nextBtn}" variant="brand" onclick="{!c.clickNext}" class="{!if(v.activeStep.isComplete, 'slds-hide', '')}" disabled="{!v.loading}"/>
+                                <lightning:button label="{!if(v._data.Steps_Completed__c >= v.steps.length, v.finishBtn, v.continueBtn)}" variant="brand" onclick="{!c.clickNavigate}" class="{!if(v.activeStep.isComplete, '', 'slds-hide')}" disabled="{!v.loading}"/>
+                            </div>
+                        </div>
+                    </footer>
+                </aura:if>
+                <!-- /Navigation Buttons -->
+            </div>
+            <!-- /Section Container -->
+
+            <!-- Modal -->
+            <c:modal aura:id="modal" title="{!v.modalTitle}">
+                <p class="slds-text-align_center">{!v.modalBody}</p>
+                <aura:set attribute="footerButtons">
+                    <lightning:button label="{!v.cancelBtn}" onclick="{!c.clickCancelModal}"/>
+                    <lightning:button label="{!v.exitBtn}" onclick="{!c.clickExitModal}" variant="brand"/>
+                </aura:set>
+            </c:modal>
+            <!-- /Modal -->
+        </div>
+        <!-- /Setup Content -->
+    </div>
+</aura:component>

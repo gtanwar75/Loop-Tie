@@ -1,0 +1,36 @@
+<aura:component controller="sendGift" implements="force:hasRecordId" access="global">
+
+    <aura:attribute name="teams" type="String[]" description="list of available user teams"/>
+    <aura:attribute name="selectedTeam" type="String" />
+    <aura:attribute name="selectedCollection" type="String" />
+    <aura:attribute name="teamCollections" type="Object[]"/>
+    <aura:attribute name="collections" type="String[]"/>
+    <aura:attribute name="buttonDisabled" type="Boolean" default="{true}"/>
+    <aura:attribute name="activeStep" type="Integer" default="{!0}"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <aura:handler name="change" value="{!v.selectedTeam}" action="{!c.checkFieldValidation}"/>
+    <aura:handler name="change" value="{!v.selectedCollection}" action="{!c.checkFieldValidation}"/>
+
+    <h2 class="slds-text-heading_medium slds-text-align_center slds-p-around_large">
+        Select Collection
+    </h2>
+    <div class="slds-container slds-container_medium slds-container_center slds-p-around_medium slds-m-bottom_large slds-card">
+        
+        <div class="slds-form slds-form_stacked">
+            <lightning:select label="Select Team" required="true" value="{!v.selectedTeam}" onchange="{!c.handleTeamSelection}">
+                <option value="">-- Please Select Team --</option>
+                <aura:iteration items="{!v.teams}" var="team" indexVar="index">
+                    <option value="{!team}">{!team}</option>
+                </aura:iteration>
+            </lightning:select>
+            
+            <lightning:select aura:id="collectionSelect" label="Select Collection" required="true" disabled="{!or(empty(v.selectedTeam), empty(v.collections))}" value="{!v.selectedCollection}">
+                <option value="">-- Please Select Collection --</option>
+                <aura:iteration items="{!v.collections}" var="collection" indexVar="index">
+                    <option value="{!collection}">{!collection}</option>
+                </aura:iteration>
+            </lightning:select>
+        </div>
+    </div>
+</aura:component>

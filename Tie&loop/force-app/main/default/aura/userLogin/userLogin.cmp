@@ -1,0 +1,36 @@
+<aura:component controller="sendGift" implements="force:hasRecordId" access="global">
+
+    <aura:attribute name="redirectURL" type="String" description="redirect url to get authorize token"/>
+    <aura:attribute name="userLoggedIn" type="Boolean" default="{!false}"/>
+    <aura:attribute name="teams" type="String[]" description="list of available user teams"/>
+    <aura:attribute name="isLoading" type="Boolean" default="{!false}"/>
+    <aura:attribute name="errorMessage" type="String"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+	<div class="slds-container slds-container_medium slds-container_center slds-p-around_medium slds-m-vertical_large slds-card">
+        <div class="slds-text-align_center lt-logo_container">
+            <img class="slds-m-vertical_large" src="{!$Resource.loopAndTieLogo}"/>
+        </div>
+        <div class="slds-scoped-notification slds-scoped-notification_light slds-m-bottom_medium slds-grid slds-grid_align-center slds-grid_vertical-align-center lt-notification_login" role="status">
+            <div class="slds-col slds-grow-none">
+                <lightning:icon
+                    iconName="utility:info"
+                    size="small"
+                    title="Log in to Loop &amp; Tie"
+                    class="slds-m-right_small"/>
+            </div>
+            <div class="slds-col">
+                <p>You must log in to Loop &amp; Tie before proceeding.</p>
+            </div>
+        </div>
+        <div class="slds-form slds-form_stacked">
+            <div class="slds-form-element slds-text-align_center">
+                <lightning:button 
+                    label="Login"
+                    variant="brand"
+                    onclick="{!c.handleSubmitButtonClick}" />
+            </div>
+        </div>
+    </div>
+</aura:component>

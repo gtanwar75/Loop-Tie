@@ -1,0 +1,57 @@
+<aura:component >
+    <aura:attribute name="recipientsList" type="Object" description="final recipients from multilookup list"/>
+    <aura:attribute name="name" type="String" />
+    <aura:attribute name="email" type="String" />
+    <aura:attribute name="scheduleAt" type="String"/>
+    <aura:attribute name="dateError" type="Integer" default="{!false}"/>
+    <aura:attribute name="dateErrorState" type="Integer" default="{!false}"/>
+    <aura:attribute name="multiLookupObjType" type="String" default="Contact"/>
+    <aura:attribute name="buttonDisabled" type="Boolean" default="{!true}"/>
+    <aura:handler name="change" value="{!v.recipientsList}" action="{!c.handleDateChange}"/> 
+    <aura:registerEvent name="dateValidation" type="c:strike_evt"/>
+    
+    <li class="slds-item">
+        <div class="slds-grid">
+            <div class="slds-col">
+                <div class="slds-tile slds-media slds-media_center st-destroyable cStrike_tile">
+                    <div class="slds-media__figure">
+                        <aura:if isTrue="{!v.multiLookupObjType == 'Contact'}">
+                            <lightning:icon
+                            iconName="standard:contact"
+                            size="medium" />
+                            <aura:set attribute="else">
+                                <lightning:icon
+                                    iconName="standard:lead"
+                                    size="medium" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="slds-media__body">
+                        <h3 class="slds-p-right--xx-large">
+                             {!v.name}
+                        </h3>
+                        <div class="slds-tile__detail slds-text-body--small slds-p-right--xx-large">
+                             {!v.email}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Date Picker -->
+            <div class="slds-col slds-grow-none">
+                <c:strike_datepicker
+                    aura:id="strikeDatePicker"
+                    label="Send Date"
+                    valueFormat="yyyy-MM-dd"
+                    yearsBefore="100"
+                    yearsAfter="30"
+                    value="{!v.scheduleAt}"
+                    errorMessage="Invalid date selected. Please ensure send date has not already passed."
+                    error="{!v.dateError}"
+                    class="lt-input_label-hidden"
+                    onChange="{!c.handleDateChange}"
+                />
+            </div>
+            <!-- /Datepicker -->
+        </div>
+    </li>
+</aura:component>

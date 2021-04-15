@@ -1,0 +1,72 @@
+<aura:component controller="design" implements="force:hasRecordId" access="global">
+
+    <aura:attribute name="selectedTeam" type="String" default=""/>
+    <aura:attribute name="selectedLogoUrl" type="String" default="https://d2g0unjhwtexh1.cloudfront.net/images/email/v1/logo-thin.png"/>
+    <aura:attribute name="selectedImageUrl" type="String" default="https://d2g0unjhwtexh1.cloudfront.net/uploads/designs/8/1454783314/uploads/standard.jpg?1454783314"/>
+    <aura:attribute name="selectedLogoId" type="String" />
+    <aura:attribute name="selectedImageId" type="String"/>
+    <aura:attribute name="defaultLogoUrl" type="String" />
+    <aura:attribute name="defaultImageUrl" type="String"/>
+    <aura:attribute name="buttonDisabled" type="Boolean" default="{!true}"/>
+    <aura:attribute name="activeStep" type="Integer" default="{!0}"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="userLogos" type="Object[]"/>
+    <aura:attribute name="userDesigns" type="Object[]"/>
+    <aura:attribute name="message" type="String" default="As a token of our appreciation, we'd like to treat you to a gift of your choice. Enjoy!"/>
+    <aura:attribute name="hasLogo" type="Boolean"/>
+    <aura:attribute name="senderName" type="String"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="change" value="{!v.selectedTeam}" action="{!c.getUserTeamLogos}"/>
+    <aura:handler name="change" value="{!v.selectedLogoUrl}" action="{!c.getLogoId}"/>
+    <aura:handler name="change" value="{!v.selectedImageUrl}" action="{!c.getImageId}"/>
+
+    <h2 class="slds-text-heading_medium slds-text-align_center slds-p-around_large">
+        Customize Design
+    </h2>
+    <div class="slds-container slds-container_medium slds-container_center slds-p-around_medium slds-m-bottom_large slds-card">
+       
+       <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2 slds-p-right_large">
+                <div class="slds-form slds-form_stacked">
+                    <lightning:select label="Select Logo" required="true" value="{!v.selectedLogoUrl}" onchange="" disabled="{!not(v.hasLogo)}">
+                        <option value="{!v.defaultLogoUrl}">-- Use Default --</option>
+                        <aura:iteration items="{!v.userLogos}" var="logo" indexVar="index">
+                            <option value="{!logo.attributes.imageUrl}">{!logo.attributes.name}</option>
+                        </aura:iteration>             
+                    </lightning:select>
+                    <lightning:select aura:id="collectionSelect" label="Select Image" required="true" value="{!v.selectedImageUrl}">
+                    <option value="{!v.defaultImageUrl}">-- Use Default --</option>
+                        <aura:iteration items="{!v.userDesigns}" var="design" indexVar="index">
+                            <option value="{!design.attributes.imageUrl}">{!design.attributes.name}</option>
+                        </aura:iteration>    
+                    </lightning:select>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-2 slds-p-around_large">
+                <!-- Preview -->
+                <div class="slds-card slds-card_boundary lt-design-preview">
+                    <div class="slds-grid slds-grid_vertical">
+                        <aura:if isTrue="{!v.hasLogo}">
+                            <div class="slds-col slds-grow-none slds-p-around_small slds-text-align_center lt-design-preview_logo">
+                                <img src="{!v.selectedLogoUrl}" alt="Loop and Tie"/>
+                            </div>
+                        </aura:if>
+                        <div class="{!'slds-col lt-design-preview_image' + (v.hasLogo ? ' slds-p-horizontal_small' : '')}">
+                            <img src="{!v.selectedImageUrl}"  alt="Default Image"/>
+                        </div>
+                       
+                        <div class="slds-col slds-grow-none slds-p-horizontal_small slds-p-bottom_small slds-p-top_small lt-design-preview_message">
+                            <div class="message">{!v.message}</div>
+                        </div>
+                        <div class="slds-col slds-grow-none slds-p-horizontal_small slds-p-bottom_x-small lt-design-preview_message">
+                          <div class="SenderName"> <p> <span>— </span>{!v.senderName} </p></div>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</aura:component>

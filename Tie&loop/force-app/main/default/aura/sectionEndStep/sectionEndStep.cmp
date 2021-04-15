@@ -1,0 +1,38 @@
+<aura:component extends="c:step">
+    <!-- Options -->
+    <aura:attribute name="sectionTitle" type="String"/>
+    <aura:attribute name="description" type="String" default=""/>
+    <!-- /Options -->
+
+    <!-- Labels -->
+    <aura:attribute name="title" type="String" default="{!format($Label.c.sectionEndStep_title, v.sectionTitle)}" access="private"/>
+    <aura:attribute name="content" type="String" default="You can reconfigure your settings at any time in the Setup Assistant's home screen." access="private"/>
+    <!-- /Labels -->
+
+    <!-- Success Animation -->
+    <div class="strike-animation slds-is-relative">
+        <!-- Thumbs Up -->
+        <lightning:icon aura:id="thumbs-up" class="strike-wizard__complete-icon strike-animation__thumbs-up strike-icon-text-success slds-is-relative" iconName="utility:like" size="large"/>
+        <!-- /Thumbs Up -->
+        <div class="strike-animation__stars slds-is-absolute">
+            <!-- Star -->
+            <lightning:icon aura:id="star" class="strike-animation__star slds-is-absolute" iconName="utility:favorite" size="medium"/>
+            <!-- /Star -->
+            <!-- Star -->
+            <lightning:icon aura:id="star" class="strike-animation__star slds-is-absolute" iconName="utility:favorite" size="medium"/>
+            <!-- /Star -->
+            <!-- Star -->
+            <lightning:icon aura:id="star" class="strike-animation__star slds-is-absolute" iconName="utility:favorite" size="medium"/>
+            <!-- /Star -->
+            <!-- Star -->
+            <lightning:icon aura:id="star" class="strike-animation__star slds-is-absolute" iconName="utility:favorite" size="medium"/>
+            <!-- /Star -->
+            <!-- Star -->
+            <lightning:icon aura:id="star" class="strike-animation__star slds-is-absolute" iconName="utility:favorite" size="medium"/>
+            <!-- /Star -->
+        </div>
+    </div>
+    <!-- /Success Animation -->
+
+    <p class="strike-wizard__step-description">{!v.content}</p>
+</aura:component>

@@ -1,0 +1,48 @@
+<aura:component extensible="true" abstract="true">
+    <aura:attribute name="data" type="Object" description="Setup_Data__c. This is automatically bounded during setup init"/>
+
+    <!-- Internal -->
+    <aura:attribute name="title" type="String" default="Override the step title in your custom step"/>
+    <aura:attribute name="description" type="String" default="Override the step description in your custom step"/>
+    <aura:attribute name="info" type="String" default=""/>
+    <aura:attribute name="hidden" type="Boolean" default="true"/>
+    <!-- /Internal -->
+
+    <!-- Labels -->
+    <aura:attribute name="invalidFormMessage" type="String" default="Please update invalid form entries and try again"/>
+    <!-- /Labels -->
+
+    <!-- Methods -->
+    <aura:method name="hide" action="{!c.hide}"/>
+    <aura:method name="show" action="{!c.show}"/>
+    <aura:method name="validate" action="{!c.validate}"/>
+    <!-- /Method -->
+
+    <!-- Events -->
+    <aura:registerEvent name="hideToast" type="c:strikeSetupEvent"/>
+    <aura:registerEvent name="showToast" type="c:strikeSetupEvent"/>
+    <!-- /Events -->
+
+    <div class="{!'slds-scope' + if(v.hidden, ' slds-hide', '')}">
+        <h3 class="strike-wizard__step-title">{!v.title}</h3>
+        <p class="strike-wizard__step-description">{!v.description}</p>
+
+        <!-- Info -->
+        <aura:if isTrue="{!not(empty(v.info))}">
+            <div class="slds-m-bottom_large">
+                <div class="strike-notify slds-notify slds-notify_toast slds-theme_info" role="alert">
+                    <span class="slds-assistive-text">Info</span>
+                    <span class="slds-icon_container slds-icon-utility-info slds-m-right_small slds-no-flex slds-align-top" title="Info">
+                        <lightning:icon iconName="utility:info" size="small" variant="inverse"/>
+                    </span>
+                    <div class="slds-notify__content">
+                        <p>{!v.info}</p>
+                    </div>
+                </div>
+            </div>
+        </aura:if>
+        <!-- /Info -->
+
+        {!v.body}
+    </div>
+</aura:component>

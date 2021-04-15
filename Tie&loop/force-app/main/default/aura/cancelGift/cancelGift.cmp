@@ -1,0 +1,97 @@
+<aura:component controller="cancelGift" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global">
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="visualforce" type="Boolean"/>
+    
+    <div class="{!'slds-scope' + (v.visualforce ? '' : ' lt-cancel-gift_is-lightning')}">
+        <aura:if isTrue="{!not(empty(v.errorMessage))}">
+            <div class="slds-notify_container">
+                <div class="slds-notify slds-notify_toast slds-theme_error" role="alert">
+                    <lightning:icon
+                        iconName="utility:error"
+                        size="small"
+                        variant="inverse"
+                        class="slds-m-right_small slds-no-flex slds-align-top" />
+                    <div class="slds-notify__content">
+                        <h2 class="slds-text-heading_small">{!v.errorMessage}</h2>
+                    </div>
+                    <lightning:buttonIcon 
+                        iconName="utility:close"
+                        alternativeText="Close"
+                        title="close"
+                        size="large"
+                        variant="bare-inverse"
+                        class="slds-notify__close"
+                        onclick="{!c.handleErrorMessageClose}"/>
+                </div>
+            </div>
+        </aura:if>
+        
+        <!-- Confirmation for Classic -->
+        <aura:if isTrue="{!v.visualforce}">
+            <div class="slds-page-header slds-border_bottom">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media slds-media_center slds-no-space slds-grow">
+                        <div class="slds-media__figure">
+                           <lightning:icon
+                               iconName="custom:custom13"
+                               size="medium" />
+                        </div>
+                        <div class="slds-media__body">
+                            <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-truncate" title="">Confirm Cancel Gift</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-container slds-container_small slds-container_center">
+                <div class="slds-box slds-m-vertical_large slds-text-align_center">
+                    Are you sure you want to cancel this gift? The recipient will no longer be able to redeem the gift if it is canceled.
+                </div>
+                <div class="slds-text-align_right slds-m-bottom_large">
+                    <lightning:button 
+                        variant="neutral"
+                        onclick="{!c.handleNoClick}" 
+                        label="Cancel"
+                        />
+                    <lightning:button 
+                        variant="brand"
+                        onclick="{!c.handleYesClick}" 
+                        label="Confirm"
+                        />
+                </div>
+            </div>
+        </aura:if>
+        <!-- /Confirmation for Classic -->
+        
+        <!-- Confirmation Modal (for Lightning) -->
+        <aura:if isTrue="{!not(v.visualforce)}">
+            <!-- Header -->
+            <header class="slds-modal__header">
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirm Cancel Gift</h2>
+            </header>
+            <!-- /Header -->
+
+            <!-- Modal Body -->
+            <div class="slds-modal__content slds-p-around_medium slds-scrollable_y">
+                <p class="slds-text-align_center">Are you sure you want to cancel this gift? The recipient will no longer be able to redeem the gift if it is canceled.</p>
+            </div>
+            <!-- /Modal Body -->
+
+            <!-- Modal Footer -->
+            <footer class="slds-modal__footer">
+                <lightning:button 
+                    variant="neutral"
+                    onclick="{!c.handleNoClick}" 
+                    label="Cancel"
+                />
+                <lightning:button 
+                variant="brand"
+                onclick="{!c.handleYesClick}" 
+                label="Confirm"
+                />
+            </footer>
+            <!-- /Modal Footer -->
+        </aura:if>
+        <!-- /Confirmation Modal (for Lightning) -->
+    </div>
+</aura:component>

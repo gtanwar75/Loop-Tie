@@ -1,0 +1,335 @@
+<aura:component controller="sendGift" implements="force:hasRecordId" access="global">
+    
+    <aura:attribute name="activeStep" type="Integer" default="{!0}"/>
+    <aura:attribute name="initialStep" type="Integer" default="{!0}"/>
+    <aura:attribute name="steps" type="Object[]" description="Object of steps in gift process"/>
+    <aura:attribute name="totalSteps" type="Integer"/>
+    <aura:attribute name="progressPercent" type="Decimal" default="{!0}"/>
+    <aura:attribute name="stepHeader" type="String" default="Select Recipients"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="entryPointObj" type="String"/>
+    <aura:attribute name="selectedRecipientIds" type="String" description="recipients selected from entry points"/>
+    <aura:attribute name="selectedRecipientIdsList" type="String[]" description="list of recipients selected from entry points"/>
+    <aura:attribute name="filterId" type="Id"/>
+    <aura:attribute name="isListView" type="Boolean" default="{!false}"/>
+    <aura:attribute name="multiLookupObjType" type="String" default="Contact"/>
+    <aura:attribute name="value" type="String" description="String value that holds the Id of the selected record"/>
+    <aura:attribute name="teams" type="String[]" description="list of available user teams"/>
+    <aura:attribute name="selectedTeam" type="String" default=""/>
+    <aura:attribute name="selectedCollection" type="String" default=""/>
+    <aura:attribute name="senderName" type="String" default=""/>
+    <aura:attribute name="selectedDate" type="String"/>
+    <aura:attribute name="subjectLine" type="String" default="[Sender Name] sent you a gift!"/>
+    <aura:attribute name="message" type="String" default="As a token of our appreciation, we'd like to treat you to a gift of your choice. Enjoy!"/>
+    <aura:attribute name="recipientIdsList" type="String[]" description="used to get info on selected recipients from multi lookup list"/>
+    <aura:attribute name="recipientsList" type="Object" description="final recipients from multilookup list"/>
+    <aura:attribute name="visibleRecipients" type="Object"/>
+    <aura:attribute name="visibleTiles" type="Integer" default="10"/>
+    <aura:attribute name="giftRequestObj" type="Object" description="create gift request body"/>
+    <aura:attribute name="bulkGiftCreation" type="Boolean" default="{!false}"/>
+    <aura:attribute name="externalGiftIdsList" type="String[]"/>
+    <aura:attribute name="giftRecords" type="Object[]"/>
+    <aura:attribute name="userLoggedIn" type="Boolean" default="{!false}"/>
+    <aura:attribute name="isLoading" type="Boolean" default="{!false}"/>
+    <aura:attribute name="buttonDisabled" type="Boolean" default="{!true}"/>
+    <aura:attribute name="recipientIdsMissingEmail" type="String[]"/>
+    <aura:attribute name="redirectURL" type="String" description="redirect url to get authorize token"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="previewLink" type="String"/>
+    <aura:attribute name="previewDisabled" type="Boolean" default="{!false}"/>
+    <aura:attribute name="exitModalShown" type="Boolean" default="{!false}"/>
+    <aura:attribute name="webhookURL" type="String" description="saved pbo org webhook url"/>
+    <aura:attribute name="dateFields" type="Object[]" description="list of custom date fields available"/>
+    <aura:attribute name="selectedLogoUrl" type="String" />
+    <aura:attribute name="selectedImageUrl" type="String" />
+    <aura:attribute name="selectedLogoId" type="String" />
+    <aura:attribute name="selectedImageId" type="String"/>
+    <aura:attribute name="isBillingError" type="Boolean" default="{!false}"/>
+    <aura:attribute name="datesPreviouslyFormatted" type="Boolean" default="{!false}"/>
+    <aura:attribute name="sendDateSelection" type="String" default="same-date"/>
+    <aura:attribute name="customDateField" type="String"/>
+    <aura:attribute name="hasLogo" type="Boolean" default="{!true}"/>
+    <aura:attribute name="duplicateEmailsError" type="Boolean" default="{!false}"/>
+    <aura:attribute name="memberType" type="String"/>
+    <aura:attribute name="dataMissingRecipientList" type="List"></aura:attribute>
+    <aura:attribute name="signatureType" type="String" default="full-name"/>
+    <aura:attribute name="userList" type="List"/>
+    <aura:attribute name="selectedSameSender" type="String"/>
+    <aura:attribute name="userLookupFields" type="List"/>
+    <aura:attribute name="selectedDiffSender" type="String"/>
+    <aura:attribute name="senderSelection" type="String" default="same-sender"/>
+    <aura:attribute name="selectedUserId" type="String"/>
+    <aura:attribute name="missingDataLength" type="Integer"/>
+	<aura:attribute name="subLineId" type="String"/>
+    <aura:attribute name="currentUser" type="String"/>
+    
+    <!-- ERROR ATTRIBUTE -->
+    <aura:attribute name="errorMsg" type="String" description="Used to send errom from parent to child Customize Message"/>
+
+    
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="strike_evt_modalPrimaryButtonClicked" event="c:strike_evt" action="{!c.handleExitClick}"/>
+    <aura:handler name="strike_evt_removeRecipient" event="c:strike_removeRecipient" action="{!c.handleMissingChangeValue}"/>
+    <aura:handler name="change" value="{!v.userLoggedIn}" action="{!c.handleErrorMessageClose}"/>
+    <div class="slds-scope">
+        <!-- Error State -->
+        <aura:if isTrue="{!not(empty(v.errorMessage))}">
+            <div class="slds-notify_container lt-error_send-gift">
+                <div class="slds-notify slds-notify_toast slds-theme_error" role="alert">
+                    <lightning:icon
+                        iconName="utility:error"
+                        size="small"
+                        variant="inverse"
+                        class="slds-m-right_small slds-no-flex slds-align-top" />
+                    <div class="slds-notify__content">
+                        <h2 class="slds-text-heading_small">{!v.errorMessage}</h2>
+                        <aura:if isTrue="{!v.isBillingError}">
+                            <p>Before you send, we need to add funds to your account! Login to <a href="https://www.loopandtie.com">loopandtie.com</a> to make a deposit or add a credit card. Contact sales@loopandtie.com if you’d like some help.</p>
+                        </aura:if>
+                    </div>
+                    <lightning:buttonIcon 
+                        iconName="utility:close"
+                        alternativeText="Close"
+                        title="close"
+                        size="large"
+                        variant="bare-inverse"
+                        class="slds-notify__close"
+                        onclick="{!c.handleErrorMessageClose}"/>
+                </div>
+            </div>
+        </aura:if>
+        <!-- /Error State -->
+        <div class="slds-grid slds-grid_vertical lt-flow-container">
+            <div class="{!'slds-col slds-grow-none' + if(not(v.userLoggedIn), ' slds-hide', '')}">
+                <div class="slds-container slds-container_fluid slds-container_center lt-send-gift_header slds-p-around_large slds-border_bottom">
+                    <h1 class="slds-text-heading_large slds-text-align_center">
+                        Send Gift 
+                    </h1>
+                    <div class="slds-grid slds-grid_pull-padded-medium slds-p-around_medium">
+                        <div class="slds-col slds-grow-none slds-p-horizontal_medium">
+                        </div>
+                        <div class="slds-col slds-p-horizontal_medium">
+                            <div class="slds-progress">
+                                <ol class="slds-progress__list">
+                                    <aura:iteration items="{!v.steps}" var="step" indexVar="index">
+                                        <li class="{!'slds-progress__item' + if(v.activeStep == index, ' slds-is-active', if(v.activeStep > index, ' slds-is-completed', ''))}">
+                                            <button class="{!'slds-button slds-progress__marker' + if(v.activeStep > index, ' slds-progress__marker_icon slds-button_icon', '')}">
+                                                <lightning:icon class="{!if(v.activeStep > index, '', 'slds-hide')}" iconName="utility:check" size="x-small" />
+                                                <span class="slds-assistive-text">
+                                                    {!step.label}
+                                                </span>
+                                            </button>
+                                            <div class="wizard-progress__step-title slds-text-color_weak">
+                                                {!step.label} 
+                                            </div>
+                                        </li>
+                                    </aura:iteration>
+                                </ol>
+                                <div class="slds-progress-bar slds-progress-bar_x-small" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" role="progressbar">
+                                    <span class="slds-progress-bar__value" style="{!'width: ' + v.progressPercent + '%'}">
+                                        <span class="slds-assistive-text">
+                                            Progress: {!v.progressPercent}%
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-grow-none ">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-scrollable_y">
+                <!-- Content -->
+                <div class="lt-body-wrapper lt-send-gift_body">
+                    <div class="{!v.activeStep lt 5 ? '' : 'slds-hide'}">
+                        <div class="{!v.activeStep == 0 ? '' : 'slds-hide'}">
+                            <aura:if isTrue="{!and(not(v.userLoggedIn), not(v.isLoading))}">
+                                <!-- Login State -->
+                                
+                                <c:userLogin
+                                    redirectURL="{!v.redirectURL}"
+                                    userLoggedIn="{!v.userLoggedIn}"
+                                    teams="{!v.teams}"
+                                    isLoading="{!v.isLoading}"
+                                    errorMessage="{!v.errorMessage}"/>
+                                <!-- / Login State -->
+                                </aura:if>
+                                <!-- Search/ Add Recipients -->
+                                <aura:if isTrue="{!and(v.userLoggedIn, not(v.isLoading))}">
+                                    <c:selectRecipients 
+                                        multiLookupObjType="{!v.multiLookupObjType}"
+                                        value="{!v.value}"
+                                        buttonDisabled="{!v.buttonDisabled}"
+                                        activeStep="{!v.activeStep}" 
+                                        visibleTiles="{!v.visibleTiles}"
+                                        recipientIdsMissingEmail="{!v.recipientIdsMissingEmail}"
+                                        duplicateEmailsError="{!v.duplicateEmailsError}"
+                                    	isLoading="{!v.isLoading}"
+                                        />
+                                </aura:if>
+                                <!-- /Search/ Add Recipients -->
+                        </div>
+                        <!-- Select Gift Collection -->
+                        <div class="{!v.activeStep == 1 ? '' : 'slds-hide'}">
+                            <c:selectGiftCollection 
+                                teams="{!v.teams}"
+                                selectedTeam="{!v.selectedTeam}"
+                                selectedCollection="{!v.selectedCollection}"
+                                buttonDisabled="{!v.buttonDisabled}"
+                                activeStep="{!v.activeStep}"
+                                errorMessage="{!v.errorMessage}"/>
+                        </div>
+                        <!-- /Select Gift Collection -->
+                        <!-- Customize Message -->
+                        <div class="{!v.activeStep == 2 ? '' : 'slds-hide'}">
+                            <c:customizeMessage 
+                                                senderName="{!v.senderName}"
+                                                selectedDate="{!v.selectedDate}"
+                                                subjectLine="{!v.subjectLine}"
+                                                message="{!v.message}"
+                                                buttonDisabled="{!v.buttonDisabled}"
+                                                activeStep="{!v.activeStep}"
+                                                recipientsList="{!v.recipientsList}"
+                                                multiLookupObjType="{!v.multiLookupObjType}"
+                                                selectedTeam="{!v.selectedTeam}"
+                                                dateFields="{!v.dateFields}"
+                                                visibleRecipients="{!v.visibleRecipients}"
+                                                visibleTiles="{!v.visibleTiles}"
+                                                sendDateSelection="{!v.sendDateSelection}"
+                                                customDateField="{!v.customDateField}"
+                                                userList="{!v.userList}"
+                                                userLookupFields ="{!v.userLookupFields}"
+                                                selectedDiffSender="{!v.selectedDiffSender}"
+                                                signatureValue="{!v.signatureType}"
+                                                dataMissingRecipientList="{!v.dataMissingRecipientList}"
+                                                errorMessage="{!v.errorMessage}"
+                                                senderSelection="{!v.senderSelection}"
+                                                selectedUserId="{!v.selectedUserId}"
+                                                missingDataLength="{!v.missingDataLength}"
+                                                isLoading="{!v.isLoading}"
+                                                currentUser="{!v.currentUser}"
+                                                errorMsg = "{!v.errorMsg}"
+                                                />
+                        </div>
+                        <!-- /Customize Message -->
+                        <!-- Loading State -->
+                        <aura:if isTrue="{!v.isLoading}">
+                            <div class="fa-wizard__spinner">
+                                <lightning:spinner size="large"
+                                    alternativeText="Loading..."/>
+                            </div>
+                        </aura:if>
+                        <!-- /Loading State -->
+                        <!-- Customize Design -->
+                        <div class="{!v.activeStep == 3 ? '' : 'slds-hide'}">
+                            <c:design 
+                                selectedTeam="{!v.selectedTeam}"
+                                selectedLogoUrl="{!v.selectedLogoUrl}"
+                                buttonDisabled="{!v.buttonDisabled}"
+                                selectedImageUrl="{!v.selectedImageUrl}"
+                                activeStep="{!v.activeStep}"
+                                message="{!v.message}"
+                                senderName="{!v.senderName}"
+                                selectedLogoId="{!v.selectedLogoId}"
+                                selectedImageId="{!v.selectedImageId}"
+                                hasLogo="{!v.hasLogo}"/>
+                        </div>
+                        <!-- Review Send-->
+                        <div class="{!v.activeStep == 4 ? '' : 'slds-hide'}">
+                            <c:review 
+                                recipientsList="{!v.recipientsList}"
+                                visibleRecipients="{!v.visibleRecipients}"
+                                visibleTiles="{!v.visibleTiles}"
+                                selectedTeam="{!v.selectedTeam}"
+                                selectedCollection="{!v.selectedCollection}"
+                                senderName="{!v.senderName}"
+                                selectedDate="{!v.selectedDate}"
+                                subjectLine="{!v.subjectLine}"
+                                message="{!v.message}"
+                                activeStep="{!v.activeStep}"
+                                totalSteps="{!v.totalSteps}"
+                                progressPercent="{!v.progressPercent}"
+                                errorMessage="{!v.errorMessage}"
+                                previewLink="{!v.previewLink}"
+                                multiLookupObjType="{!v.multiLookupObjType}"
+                                selectedLogoUrl="{!v.selectedLogoUrl}"
+                                selectedImageUrl="{!v.selectedImageUrl}"
+                                datesPreviouslyFormatted="{!v.datesPreviouslyFormatted}"
+                                sendDateSelection="{!v.sendDateSelection}"
+                                customDateField="{!v.customDateField}"
+                                hasLogo="{!v.hasLogo}"/>
+                        </div>
+                        <!-- /Review  Send -->
+                    </div>
+                    <!-- Confirmation -->
+                    <div class="{!and(v.activeStep == v.totalSteps, not(v.isLoading)) ? '' : 'slds-hide'}">
+                        <c:confirmation 
+                            giftRecords="{!v.giftRecords}"
+                            multiLookupObjType="{!v.multiLookupObjType}"/>
+                    </div>
+                    <!-- /Confirmation -->
+                </div>
+            </div>
+            <!--/Content -->
+            <!-- Footer -->
+            <div class="{!'slds-col slds-grow-none' + if(not(v.userLoggedIn), ' slds-hide', '')}">
+                <div class="slds-grid slds-grid_pull-padded-none slds-p-around_small slds-border_top lt-send-gift_footer">
+                    <div class="slds-col slds-p-horizontal_none">
+                        <div class="{!v.activeStep lt v.totalSteps ? '' : 'slds-hide'}">
+                            <aura:if isTrue="{!v.activeStep == v.initialStep }">
+                                <lightning:button
+                                label="Exit"
+                                onclick="{!c.handleShowExitModal}" />
+                                <aura:set attribute="else">
+                                    <lightning:buttonGroup >
+                                        <lightning:button 
+                                            onclick="{!c.handlePreviousClick}" 
+                                            label="Back"/>
+                                        <lightning:button
+                                        label="Exit"
+                                        onclick="{!c.handleShowExitModal}" />
+                                    </lightning:buttonGroup>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_none slds-grow-none">
+                        <aura:if isTrue="{!v.activeStep == 4}">
+                            <lightning:button 
+                                onclick="{!c.handlePreviewButtonClick}" 
+                                label="Preview" 
+                                disabled="{!v.previewDisabled}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.activeStep == v.totalSteps}">
+                            <lightning:button 
+                                variant="brand"
+                                onclick="{!c.handleExitClick}" 
+                                label="Done"
+                            />
+                            <aura:set attribute="else">
+                                <lightning:button 
+                                    variant="brand"
+                                    onclick="{!c.handleNextClick}" 
+                                    label="{!if(v.activeStep == 4, 'Send', 'Next')}"
+                                    disabled="{!v.buttonDisabled}"
+                                />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+            <!-- /Footer -->
+        </div>
+        <c:strike_modal
+            title="Are you sure you want to exit?"
+            primaryButtonLabel="Confirm"
+            secondaryButtonLabel="Cancel"
+            showHeader="true"
+            showFooter="true"
+            showClose="true"
+            showModal="{!v.exitModalShown}">
+            <p class="slds-text-align_center">Any unsent gifts will be lost if you leave the gifting process.</p>
+        </c:strike_modal>
+    </div>
+</aura:component>

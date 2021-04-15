@@ -1,0 +1,74 @@
+<aura:component implements="force:hasRecordId" access="public">
+
+    <aura:attribute name="giftRecords" type="Object[]"/>
+    <aura:attribute name="multiLookupObjType" type="String" default="Contact"/>
+    <aura:attribute name="dateFormat" type="String"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+    <div class="slds-container slds-container_large slds-container_center slds-card slds-p-around_medium slds-m-top_large slds-m-bottom_large"> 
+        
+        <!-- Status Banner -->
+        <div class="slds-text-align_center slds-m-top_medium slds-m-bottom_x-large">
+            <h1 class="slds-text-heading_large slds-text-color_success">{!(v.giftRecords.length == 1 ? 'Your Gift Has Been Scheduled!' : 'Your Gifts Have Been Scheduled!')}</h1>
+        </div>
+        <!-- /Status Banner -->
+        <!-- Created Records --> 
+     <div class="slds-scrollable_x">
+         <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+             <thead>
+                <tr class="slds-text-title_caps">
+                    <th scope="col">
+                        <div class="slds-truncate" title="Gift Record">Gift Record</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Gift ID">Gift ID</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Recipient">Recipient</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Recipient Email">Recipient Email</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Collection">Collection</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Send Date">Send Date</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.giftRecords}" var="gift" indexVar="index">
+                    <tr>
+                        <td>
+                            <div class="slds-truncate" title="{!gift.Name}"><a href="{!'/' + gift.Id}" target="_blank">{!gift.Name}</a></div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" title="{!gift.Gift_Id__c}">{!gift.Gift_Id__c}</div>
+                        </td>
+                        <td>
+                            <aura:if isTrue="{!v.multiLookupObjType == 'Contact'}">
+                                <div class="slds-truncate" title="{!gift.Recipient__c}"><a href="{!'/' + gift.Contact_Id__c}" target="_blank">{!gift.Recipient__c}</a></div>
+                                <aura:set attribute="else">
+                                    <div class="slds-truncate" title="{!gift.Recipient__c}"><a href="{!'/' + gift.Lead_Id__c}" target="_blank">{!gift.Recipient__c}</a></div>
+                                </aura:set>
+                            </aura:if>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" title="{!gift.Email__c}">{!gift.Email__c}</div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" title="{!gift.Collection__c}">{!gift.Collection__c}</div>
+                        </td>
+                         <td>
+                            <div class="slds-truncate" title="{!gift.Scheduled_At__c}"><ui:outputDate value="{!gift.Scheduled_At__c}" format="M/d/yyyy"/></div>
+                        </td>
+                    </tr>
+                </aura:iteration>
+                </tbody>
+            </table>
+        </div>
+        <!-- /Created Records -->
+    </div>
+</aura:component>

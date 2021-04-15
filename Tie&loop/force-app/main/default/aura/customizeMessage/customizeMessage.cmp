@@ -1,0 +1,389 @@
+<aura:component controller="customizeMessage" implements="force:hasRecordId" access="global">
+    <aura:attribute name="senderName" type="String"/>
+    <aura:attribute name="selectedDate" type="String"/>
+    <aura:attribute name="subjectLine" type="String"/>
+    <aura:attribute name="subjectPostMessage" type="String" default="sent you a gift!"/>
+    <aura:attribute name="message" type="String" default="As a token of our appreciation, we'd like to treat you to a gift of your choice. Enjoy!"/>
+    <aura:attribute name="buttonDisabled" type="Boolean" default="{!true}"/>
+    <aura:attribute name="activeStep" type="Integer" default="{!0}"/>
+    <aura:attribute name="dateError" type="Integer" default="{!false}"/>
+    <aura:attribute name="dateErrorState" type="Integer" default="{!false}"/>
+    <aura:attribute name="textMessageError" type="Boolean" default="{!false}"/>
+    <aura:attribute name="selectedTeam" type="String"/>
+    <aura:attribute name="sendDateSelection" type="String"/>
+    <aura:attribute name="deleteModal" type="boolean"/>
+    <aura:attribute name="recipientsList" type="Object" description="final recipients from multilookup list"/>
+    <aura:attribute name="multiLookupObjType" type="String" default="Contact"/>
+    <aura:attribute name="sendOptions" type="List" default="[
+                                                            {'label': 'Same Date', 'value': 'same-date'},
+                                                            {'label': 'Different Dates', 'value': 'custom-dates'}
+                                                            ]"/>
+    <aura:attribute name="signatureOptions" type="List" default="[
+                                                                 {'label': 'Full Name', 'value': 'full-name'},
+                                                                 {'label': 'First Name', 'value': 'first-name'},
+                                                                 {'label': 'Custom', 'value': 'custom'}
+                                                                 ]"/>
+    
+    
+    <aura:attribute name="signatureValue" type="String" default="full-name"/>
+    <aura:attribute name="signType" type="String"/>
+    <aura:attribute name="senderSignName" type="String"/>
+    <aura:attribute name="messageModalOpen" type="Boolean" default="{!false}"/>
+    <aura:attribute name="previousMessagesList" type="Object[]" description="previously used messages"/>
+    <aura:attribute name="previousMessageSelected" type="String"/>
+    <aura:attribute name="fromPreviousMessage" type="Boolean" default="{!false}"/>
+    <aura:attribute name="dateFields" type="Object[]" description="list of custom date fields available"/>
+    <aura:attribute name="customDateField" type="String"/>
+    <aura:attribute name="scheduleAt" type="String"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="visibleRecipients" type="Object"/>
+    <aura:attribute name="visibleTiles" type="Integer" default="10"/>
+    <aura:attribute name="senderSelection" type="String" default="same-sender"/>
+    <aura:attribute name="selectedUserId" type="String"/>
+    <aura:attribute name="senderOptions" type="List" default="[
+                                                              {'label': 'Same Sender', 'value': 'same-sender'},
+                                                              {'label': 'Dynamic Sender', 'value': 'different-sender'}
+                                                              ]"/>
+    <aura:attribute name="userList" type="List"/>
+    <aura:attribute name="userLookupFields" type="List"/>
+    <aura:attribute name="selectedDiffSender" type="String"/>
+    <aura:attribute name="validationError" type="boolean" default="false"/>
+    <aura:attribute name="currentUser" type="String"/>
+    
+    <aura:attribute name="disabled" type="boolean" default="true"/>
+    <aura:attribute name="dataMissingRecipientList" type="List"/>
+    <aura:attribute name="missingDataLength" type="Integer"/>
+    <aura:attribute name="ignoreDialog" type="Boolean" default="false"/>
+    <aura:attribute name="isLoading" type="Boolean"/>
+    <aura:attribute name="subLineId" type="String"/>
+    <aura:attribute name="errorMsg" type="String"/>
+    
+    
+    
+    <!-- Attributes of USER LOOKUP -->
+    <aura:attribute name="selectedRecord" type="sObject" description="Use,for store SELECTED sObject Record"/> <!-- selectedRecord -->
+    <aura:attribute name="listOfSearchRecords" type="List" description="Use,for store the list of search records which returns from apex class"/>
+    <aura:attribute name="SearchKeyWord" type="string"/>
+    <aura:attribute name="IconName" type="string" default=""/>
+    <aura:attribute name="label" type="string" default=""/>
+    <aura:attribute name="Messagee" type="String" default=""/> <!-- Messagee -->
+    
+    <!-- HANDLERS of USER LOOKUP -->  
+    <aura:handler name="oSelectedRecordEvent" event="c:selectedsObjectRecordEvent" action="{!c.handleComponentLookup}"/>
+    
+    
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <aura:handler name="change" value="{!v.senderName}" action="{!c.callCheckFieldValidation}"/>
+    <aura:handler name="change" value="{!v.selectedDate}" action="{!c.callCheckFieldValidation}"/>
+    <aura:handler name="change" value="{!v.subjectLine}" action="{!c.callCheckFieldValidation}"/>
+    <aura:handler name="change" value="{!v.message}" action="{!c.callCheckFieldValidation}"/>
+    <aura:handler name="change" value="{!v.selectedTeam}" action="{!c.getUserTeamMessages}"/>
+    <aura:handler name="change" value="{!v.customDateField}" action="{!c.handleCustomDateSelection}"/>
+    
+    <aura:handler name="change" value="{!v.recipientsList}" action="{!c.handleScheduleDateChanges}"/>
+    <aura:handler name="change" value="{!v.selectedFromUser}" action="{!c.handlerFromUser}"></aura:handler>
+    
+    <aura:handler name="dateValidation" event="c:strike_evt" action="{!c.handleButtonStateChange}"/>
+    
+    
+    <aura:html tag="style">
+        .slds-scope .slds-form_compound .slds-form-element__row .slds-form-element, .slds-scope .slds-form--compound .slds-form-element__row .slds-form-element {
+        margin-bottom: 0;
+        margin-top: 2px;
+        }
+    </aura:html>
+    
+    <h2 class="slds-text-heading_medium slds-text-align_center slds-p-around_large">
+        Gift Email
+    </h2>
+    <div class="slds-container slds-container_medium slds-container_center slds-p-around_medium slds-m-bottom_large slds-card">
+        <div class="slds-form slds-form_compound">
+            
+            <!-- Sender Picker -->
+            <div class="slds-form-element__row lt-date-options">
+                <div class="slds-form-element slds-size_1-of-2">
+                    <lightning:radioGroup 
+                                          aura:id="send-from"
+                                          name="sendUserOptions"
+                                          label="Send From"
+                                          required="true"
+                                          options="{!v.senderOptions}"
+                                          value="{!v.senderSelection}"
+                                          onchange="{!c.update}"
+                                          />
+                </div>
+                <div class="slds-form-element slds-size_1-of-2 slds-p-top_x-small">
+                    <aura:if isTrue="{!v.senderSelection == 'different-sender'}">
+                        <div class="slds-form-element slds-size_1-of-2 lt-input_label-hidden" >
+                            <lightning:select aura:id="selectedUser1" name="different-sender" label="Send From" value="{!v.selectedDiffSender}"  variant="standard" class="" onchange="{!c.update}">
+                                <option value="">None</option>
+                                <aura:iteration items="{!v.userLookupFields}" var="userlookup">
+                                    <option value="{!userlookup.key}">{!userlookup.value}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </aura:if>
+                    <!-- <aura:if isTrue="{!v.senderSelection == 'same-sender'}">-->
+                    <div class="slds-container slds-container_medium" aura:id="sameSender">
+                        <div class="slds-form-element slds-size_1-of-1">
+                            <div class="propisfy-proposal_recipients">
+                                <!--<aura:if isTrue="{!v.multiLookupObjType == 'Contact'}"  USER LOOKUP>-->
+                                <div onmouseleave="{!c.onblur}" aura:id="searchRes" class="slds-form-element slds-lookup slds-is-close" data-select="single">
+                                    <label class="slds-form-element__label" for="lookup-348">{!v.label}</label>
+                                    <!--This part is for display search bar for lookup-->  
+                                    <div class="slds-form-element__control" >
+                                        
+                                        <div class="slds-input-has-icon slds-input-has-icon--right" style="width:70%">
+                                            <!-- This markup is for when an record is selected -->
+                                            <div aura:id="lookup-pill" class="slds-pill-container slds-show">
+                                                <lightning:pill class="pillSize" aura:id="pillUser" label="{!v.selectedRecord.Name}" name="{!v.selectedRecord.Id}" onremove="{! c.clear }">
+                                                    <aura:set attribute="media">
+                                                        <lightning:icon iconName="standard:user" size="x-small" alternativeText="users"/>
+                                                    </aura:set>
+                                                </lightning:pill>
+                                            </div>
+                                            <div aura:id="lookupField" class="slds-hide">
+                                                <lightning:icon class="slds-input__icon slds-show " iconName="utility:search" size="x-small" alternativeText="search"/>
+                                                <span class="slds-icon_container  slds-combobox__input-entity-icon" title="record">
+                                                    <lightning:icon class="slds-icon slds-icon slds-icon_medium slds-icon-text-default" iconName="standard:user" size="medium" alternativeText="icon"/>
+                                                    <span class="slds-assistive-text"></span>
+                                                </span>
+                                                <ui:inputText click="{!c.onfocus}" updateOn="keyup" keyup="{!c.keyPressController}" class="slds-lookup__search-input slds-input leftPaddingClass" value="{!v.SearchKeyWord}" placeholder="search.."/>
+                                            </div>   
+                                        </div>
+                                    </div>
+                                    <!--This part is for Display typehead lookup result List-->  
+                                    <ul style="min-height:40px;margin-top:0px !important" class="slds-listbox slds-listbox_vertical slds-dropdown slds-dropdown_fluid slds-lookup__menu slds" role="listbox">
+                                        <lightning:spinner class="slds-hide" variant="brand" size="small" aura:id="mySpinner"/>
+                                        <center> {!v.Messagee}</center>
+                                        <aura:iteration items="{!v.listOfSearchRecords}" var="singleRec">
+                                            <c:user_lookupChild oRecord="{!singleRec}" IconName="standard:user"/>
+                                        </aura:iteration>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- </aura:if>-->
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <!-- Signature Type -->
+            <div class="slds-form-element__row lt-date-options">
+                <div class="slds-form-element slds-size_1-of-1">
+                    <lightning:radioGroup 
+                                          aura:id= "signaturetype"
+                                          name="signatureType"
+                                          label="Signature Type"
+                                          required="true"
+                                          options="{!v.signatureOptions}"
+                                          value="{!v.signatureValue}"
+                                          onchange="{!c.update}"
+                                          />
+                    
+                </div>
+            </div>
+            
+            
+            <div>
+                <lightning:input label="Signature" 
+                                 name="Signature"
+                                 maxlength="80"
+                                 required="true"
+                                 value="{!v.senderName}"
+                                 disabled="{!v.disabled}"
+                                 />
+            </div>
+            
+            
+            <!--Subject Line-->
+            <div class="slds-form-element__row slds-grid slds-wrap slds-p-top_x-small">
+                <div class="slds-size_1-of-1">
+                    <lightning:input  
+                                     aura:id="subjectLine"
+                                     label="Subject Line" 
+                                     name="Subject Line"
+                                     maxlength="255"
+                                     required="true"
+                                     placeholder="Enter a Subject Line..."
+                                     value="{!v.subjectLine}"
+                                     />
+                    
+                    
+                </div>
+                <lightning:helptext title='To edit the subject for Dynamic Sender, be sure to maintain the format of the field placeholder selected. Example: for Owner ID the format is {ownerid}. To refresh, revert Dynamic Sender selection to "None" and reselect.' iconName="utility:info" 
+                                                content='' 
+                                                class = "customIcon" />
+                <div class="slds-col slds-size_1-of-1"><p style="color:red;">{!v.errorMsg}</p></div> 
+            </div>
+            
+            <div class="slds-form-element__row">
+                <div class="slds-form-element slds-size_1-of-1">
+                    <div class="slds-form-element__control">
+                        <c:strike_textarea 
+                                           label="Message"
+                                           placeholder="Your Message..."
+                                           helpText="You can use magic tokens in your message. Simply add :first_name: and we will replace it with the recipient's name during the sending process. Same concept goes with :last_name:, :name:, and :email:."
+                                           required="true"
+                                           maxlength="500"
+                                           errorMessage="Complete this field."
+                                           value="{!v.message}"
+                                           error="{!v.textMessageError}" />
+                    </div>
+                    
+                </div>
+                
+            </div>
+            <div class="slds-form-element__row">
+                <div class="slds-form-element slds-size_1-of-1">
+                    <aura:if isTrue="{!not(empty(v.previousMessagesList))}">
+                        <div >
+                            <lightning:button label="Use Previous Messages"
+                                              variant="base"
+                                              onclick="{!c.openHistoricalMessageModal}" />
+                        </div>
+                    </aura:if>
+                </div>
+            </div>
+            <!-- Date Picker -->
+            <div class="slds-form-element__row lt-date-options">
+                <div class="slds-form-element slds-size_1-of-2">
+                    <lightning:radioGroup 
+                                          aura:id="send-date"
+                                          name="sendDateOptions"
+                                          label="Send Date"
+                                          options="{!v.sendOptions}"
+                                          value="{!v.sendDateSelection}"/>
+                </div>
+                <aura:if isTrue="{!v.sendDateSelection == 'custom-dates'}">
+                    <div class="slds-form-element slds-size_1-of-4 lt-input_label-hidden" >
+                        <lightning:select name="send-date" label="Send Date" value="{!v.customDateField}" variant="standard" class="">
+                            
+                            <option value="Custom Dates">Custom Dates</option>
+                            <aura:iteration items="{!v.dateFields}" var="field" indexVar="index">
+                                <option value="{!field.name}">{!field.label}</option>
+                            </aura:iteration>
+                            
+                        </lightning:select>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.sendDateSelection == 'same-date'}">
+                    <div class="slds-form-element slds-size_1-of-4 lt-input_label-hidden">
+                        <c:strike_datepicker
+                                             label="Send Date"
+                                             valueFormat="yyyy-MM-dd"
+                                             yearsBefore="100"
+                                             yearsAfter="30"
+                                             value="{!v.selectedDate}"
+                                             errorMessage="Invalid date selected. Please ensure send date has not already passed."
+                                             error="{!v.dateError}"
+                                             class=""
+                                             />
+                    </div>
+                </aura:if>
+                <!-- /Date Picker -->
+            </div>
+        </div>
+        <!-- Recipient List -->
+        <div class="{!v.sendDateSelection == 'custom-dates' ? '' : 'slds-hide'}">
+            <!-- <aura:if isTrue="{!v.sendDateSelection == 'custom-dates'}"> -->
+            <ul class="slds-has-dividers--bottom-space slds-m-top--small lt-recipient-list">
+                <aura:iteration items="{!v.recipientsList.recipients}" var="recipient" indexVar="index">
+                    <c:customDatePicker
+                                        aura:id="datePicker"
+                                        name="{!recipient.name}"
+                                        email="{!recipient.email}"
+                                        scheduleAt="{!recipient.scheduledAt}"
+                                        multiLookupObjType="{!v.multiLookupObjType}"
+                                        buttonDisabled="{!v.buttonDisabled}"
+                                        dateErrorState="{!v.dateErrorState}"
+                                        />
+                </aura:iteration>
+            </ul>
+            <!--         </aura:if> -->
+        </div>
+        <!-- /Recipient List -->
+    </div>
+    
+    <!--slds-form-element__row-->
+    <aura:if isTrue="{!not(empty(v.dataMissingRecipientList))}">
+        <div class="slds-container slds-container_large slds-container_center slds-p-around_x-small slds-m-bottom_large">
+            <p style="color:red"><center>Dynamic Sender data is missing from {!v.missingDataLength} recipient(s). Remove recipient or complete the data on record.</center></p>     
+            <div class="slds-container slds-container_medium slds-container_center slds-p-around_medium slds-m-bottom_large slds-card">
+                <div class="slds-form-element">
+                    <div class="propisfy-proposal_recipients">
+                        <ul class="slds-has-dividers--bottom-space slds-m-top--small lt-recipient-list">
+                            <aura:iteration items="{!v.dataMissingRecipientList}" var="recipient">
+                                <li class="slds-item">
+                                    <c:strike_tile 
+                                                   title="{!recipient.name}"
+                                                   variant="icon"
+                                                   subtitle="{!recipient.email}"
+                                                   iconName="standard:contact"
+                                                   destroyable="true"
+                                                   deleteModal="true"
+                                                   activeStep="{!v.activeStep}"
+                                                   ignoreDialog="{!v.ignoreDialog}"
+                                                   dataMissingRecipientList = "{!v.dataMissingRecipientList}"
+                                                   currentRecipientId="{!recipient.id}"
+                                                   />
+                                </li>
+                            </aura:iteration>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aura:if>
+    <!-- Message Select Modal -->
+    <c:strike_modal
+                    title="Previous Messages"
+                    primaryButtonLabel="Confirm"
+                    secondaryButtonLabel="Cancel"
+                    showHeader="true"
+                    showFooter="true"
+                    showClose="true"
+                    showModal="{!v.messageModalOpen}"
+                    fromPreviousMessage="{!v.fromPreviousMessage}"
+                    message="{!v.message}"
+                    previousMessageSelected="{!v.previousMessageSelected}">
+        <!-- Previous Messages Empty State -->
+        <aura:if isTrue="{!empty(v.previousMessagesList)}">
+            <div class="slds-p-around_large slds-text-align_center">
+                <em class="slds-text-color_weak">
+                    No Previous Messages to Show
+                </em>
+            </div>
+        </aura:if>
+        <!-- /Previous Messages Empty State -->
+        <aura:if isTrue="{!not(empty(v.previousMessagesList))}">
+            <fieldset class="slds-form-element lt-previous-message-list">
+                <!-- Iterate Through Form Elements (Radio Inputs) -->
+                <aura:iteration items="{!v.previousMessagesList}" var="data" indexVar="index">
+                    <div class="slds-form-element__control slds-m-bottom_small">
+                        <div class="slds-visual-picker slds-visual-picker_vertical">
+                            <input type="radio" id="{!index}" value="{!data.attributes.message}" onclick="{!c.handleMessageSelect}" name="options" />
+                            <label for="{!index}">
+                                <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center">
+                                    <span>
+                                        <span class="slds-text-title">{!data.attributes.message}</span>
+                                    </span>
+                                </span>
+                                <lightning:icon
+                                                iconName="utility:check"
+                                                size="xx-small"
+                                                variant="inverse"
+                                                title="title"
+                                                class="slds-visual-picker__text-check" />
+                            </label>
+                        </div>
+                    </div>
+                </aura:iteration>
+            </fieldset>
+        </aura:if>
+    </c:strike_modal>
+</aura:component>

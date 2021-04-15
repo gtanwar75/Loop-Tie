@@ -1,0 +1,69 @@
+<apex:page sidebar="false" showHeader="true" controller="setup">
+    <apex:includeLightning />
+    <apex:slds />
+    <style type="text/css">
+        #lightning {
+            min-height: 100vh;
+            background-color: #f7f9fb;
+            padding-bottom: 2rem;
+            position: relative;
+        }
+        .noSidebarCell #setup-assistant {
+            min-height: calc(100vh - 120px);
+        }
+        .bodyDiv .outerNoSidebar,
+        .noSidebarCell,
+        .sidebarCell .fixed { 
+            padding: 0;
+        }
+        .noSidebarCell #setup-assistant .slds-scope .strike-wizard__footer {
+            position: absolute;
+        }
+        #auraErrorMessage {
+            position: fixed;
+            top: 0;
+            z-index: 9999;
+        }
+    </style>
+
+    <div id="lightning">
+        <div id="spinner" style="height: 6rem;">
+            <div role="status" class="slds-spinner slds-spinner_medium">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        /*** OAUTH ***/
+        function initOauth(oauthUrl) {
+            window.finishOauth = function (data) {
+                var oauthEvent = oauthStepComponent.getEvent('handleOauth');
+
+                oauthEvent.setParams({data: data});
+                oauthEvent.fire();
+            }
+
+            var width = 600;
+            var height = 600;
+            var left = (screen.width / 2) - (width / 2);
+            var top = (screen.height / 2) - (height / 2);
+            console.log('oauthUrl >>'+ oauthUrl);
+            window.open(oauthUrl, 'oauth', 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top);
+        }
+        /*** /OAUTH ***/
+
+        $Lightning.use('{!JSENCODE(namespace)}:strikeSetupLightningOut', function () {
+            $Lightning.createComponent('{!JSENCODE(namespace)}:setup', {
+                initOauth: initOauth
+            }, 'lightning', function (component, status, errorMessage) {
+                oauthStepComponent = component.find('systemConnections');
+                if (null == errorMessage) {
+                    document.getElementById('spinner').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</apex:page>

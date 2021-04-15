@@ -1,0 +1,36 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <ltng:require scripts="{!join(',',$Resource.Highcharts,$Resource.highchart3d,$Resource.Highchartsexport)}" 
+                  afterScriptsLoaded="{!c.afterScriptsLoaded}"/>
+    
+    <!--Attributes-->
+    <aura:attribute name="chartType" type="string"/>
+    <aura:attribute name="chartTitle" type="string" default="Gifts by Status"/>
+    <aura:attribute name="chartSubTitle" type="string" default="Display Gift Count by Status"/>
+    <aura:attribute name="xAxisCategories" type="string[]" default="['sent','opened','redeemed','bounced','shipped',
+                                                                    'canceled','declined','delivered','scheduled']"/>
+    <aura:attribute name="yAxisParameter" type="string" default="No. of Gifts"/>
+    <aura:attribute name="data" type="string"/>
+    
+    <!--Handler-->
+    <aura:handler name="change" value="{!v.data}" action="{!c.handleMemberSelected}" />
+    
+    <div class="slds-card">   <!--slds-align_absolute-center-->
+        <!--<br />-->
+        <!--<div class="slds-align_absolute-center">--><!--class="slds-col slds-size_1-of-4"-->
+            <!--<lightning:select name="select" label="Select Member" aura:id="member" onchange="{!c.handleMemberSelected}" >
+                <option value="Both"> Both</option>
+                <option value="Lead"> Lead</option>
+                <option value="Contact"> Contact</option>
+            </lightning:select>
+        </div>-->
+        <!--<br />
+        <br />-->
+        <div class="slds-medium-show slds-align_absolute-center"> <!-- class="slds-grid slds-wrap slds-grid- -pull-padded" -->
+            <div>
+                <div aura:id="chart"><!-- style="height: 400px"-->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</aura:component>

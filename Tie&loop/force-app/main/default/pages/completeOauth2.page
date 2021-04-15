@@ -1,0 +1,14 @@
+<apex:page controller="completeOauth2">
+    <script>
+        var state = '{!JSEncode($CurrentPage.parameters.state)}';
+        if(state == 'fromSalesforce') {
+            window.opener.postMessage({
+                code: '{!JSENCODE($CurrentPage.parameters.code)}',
+                postMessageKey: '{!JSENCODE($CurrentPage.parameters.state)}'
+            }, '{!JSENCODE(origin)}');
+        } else {
+            window.opener.postMessage('authorize token done', state);
+        }
+        window.close();
+    </script>
+</apex:page>
